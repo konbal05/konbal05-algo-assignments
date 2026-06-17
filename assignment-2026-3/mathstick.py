@@ -138,3 +138,20 @@ def _record(self, sticks_added):
             "nodes_pruned":  self.pruned,
             "solutions":     sols,
         }
+        
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--problem", required=True)
+    parser.add_argument("--max-k", type=int, default=2)
+    args = parser.parse_args()
+
+    try:
+        output = MatchstickSolver(args.problem, args.max_k).solve()
+    except ValueError as exc:
+        print(json.dumps({"error": str(exc)}, indent=2))
+        sys.exit(1)
+
+    print(json.dumps(output, indent=2))
+
+if __name__ == "__main__":
+    main()
