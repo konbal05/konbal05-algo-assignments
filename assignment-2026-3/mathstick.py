@@ -92,4 +92,49 @@ def solve(self):
                 continue
             self.chosen[slot] = c.target
             self._search(slot + 1, ta, tr)
+            
+def _record(self, sticks_added):
+        moves = sticks_added + self.op_add
+        if moves < 1:
+            return
+        e1 = "".join(str(d) for d in self.chosen[:self.w1])
+        e2 = "".join(str(d) for d in self.chosen[self.w1:self.w1 + self.w2])
+        e3 = "".join(str(d) for d in self.chosen[self.w1 + self.w2:])
+        if not _equation_holds(int(e1), self.target_op, int(e2), int(e3)):
+            return
+        picks, places = [], []
+        for i in range(self.ns):
+            src = DIGIT_SEGMENTS[self.digits[i]]
+            dst = DIGIT_SEGMENTS[self.chosen[i]]
+            picks  += ["{}{}".format(self.letters[i], s) for s in sorted(src - dst)]
+            places += ["{}{}".format(self.letters[i], s) for s in sorted(dst - src)]
+        if self.op_remove:
+            picks.append(OP_SEGMENT)
+        if self.op_add:
+            places.append(OP_SEGMENT)
+        self.results.append((moves, {
+            "equation": "{} {} {} = {}".format(e1, self.target_op, e2, e3),
+            "picks":  picks,
+            "places": places,
+            "moves":  ["Move({}, {})".format(p, q) for p, q in zip(picks, places)],
+            "nodes_visited": self.visited,
+            "nodes_pruned": self.pruned,
+        }))
 
+    def _build_summary(self):
+        counts = {str(k): 0 for k in range(1, self.max_k + 1)}
+        sols   = {str(k): [] for k in range(1, self.max_k + 1)}
+        for moves, sol in self.results:
+            key = str(moves)
+            counts[key] += 1
+            sols[key].append(sol)
+        for bucket in sols.values():
+            bucket.sort(key=lambda s: s["equation"])
+        return {
+            "problem":       "{} {} {} = {}".format(self.n1, self.op, self.n2, self.n3),
+            "max_k":         self.max_k,
+            "counts":        counts,
+            "nodes_visited": self.visited,
+            "nodes_pruned":  self.pruned,
+            "solutions":     sols,
+        }
