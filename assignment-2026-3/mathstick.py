@@ -27,8 +27,8 @@ def digit_candidates(digit, max_k):
     src = DIGIT_SEGMENTS[digit]
     result = []
     for tgt, dst in DIGIT_SEGMENTS.items():
-        a = len(dst - src)   # σπίρτα που προστίθενται
-        r = len(src - dst)   # σπίρτα που αφαιρούνται
+        a = len(dst - src)
+        r = len(src - dst)
         if a <= max_k and r <= max_k:
             result.append(Candidate(tgt, a, r))
     result.sort(key=lambda c: (c.add + c.remove, c.target))
@@ -63,4 +63,33 @@ class MatchstickSolver:
         self.visited = 0
         self.pruned = 0
         self.results = []
-        
+
+def solve(self):
+        for target_op in ("+", "-"):
+            self.op_add = 1 if (self.op == "-" and target_op == "+") else 0
+            self.op_remove = 1 if (self.op == "+" and target_op == "-") else 0
+            if self.op_add > self.max_k or self.op_remove > self.max_k:
+                continue
+            self.target_op = target_op
+            self.required_net = self.op_remove - self.op_add
+            self._search(0, 0, 0)
+        return self._build_summary()
+
+    def _search(self, slot, sticks_added, sticks_removed):
+        self.visited += 1
+        if slot == self.ns:
+            self._record(sticks_added)
+            return
+        for c in self.candidates[slot]:
+            ta = sticks_added + c.add
+            tr = sticks_removed + c.remove
+            if ta + self.op_add > self.max_k or tr + self.op_remove > self.max_k:
+                self.pruned += 1
+                continue
+            remaining = self.required_net - (ta - tr)
+            if not (self.suf_min[slot + 1] <= remaining <= self.suf_max[slot + 1]):
+                self.pruned += 1
+                continue
+            self.chosen[slot] = c.target
+            self._search(slot + 1, ta, tr)
+
