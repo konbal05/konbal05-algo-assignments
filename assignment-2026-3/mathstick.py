@@ -22,3 +22,20 @@ DIGIT_SEGMENTS = {
 OP_SEGMENT = "OP0"
 
 EQUATION_RE = re.compile(r"^\s*(\d+)\s*([+-])\s*(\d+)\s*=\s*(\d+)\s*$")
+
+def digit_candidates(digit, max_k):
+    src = DIGIT_SEGMENTS[digit]
+    result = []
+    for tgt, dst in DIGIT_SEGMENTS.items():
+        a = len(dst - src)   # σπίρτα που προστίθενται
+        r = len(src - dst)   # σπίρτα που αφαιρούνται
+        if a <= max_k and r <= max_k:
+            result.append(Candidate(tgt, a, r))
+    result.sort(key=lambda c: (c.add + c.remove, c.target))
+    return result
+
+
+def _equation_holds(v1, op, v2, v3):
+    if op == "+":
+        return v1 + v2 == v3
+    return v1 - v2 == v3
